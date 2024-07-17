@@ -11,5 +11,6 @@ var searchData=
   ['rotateagainstaftershifting_8',['rotateAgainstAfterShifting',['../classbezier__geometry_1_1_shape.html#a51b04b58bb5a060c98356ebb8eb2da68',1,'bezier_geometry::Shape']]],
   ['rotateagainstcirclearc_9',['rotateAgainstCircleArc',['../classbezier__geometry_1_1_bezier_curve_q.html#ab67ac069d2ebfece00d7ae319389d6e7',1,'bezier_geometry::BezierCurveQ']]],
   ['rotateagainstresult_10',['RotateAgainstResult',['../structbezier__geometry_1_1_bezier_curve_q_1_1_rotate_against_result.html',1,'bezier_geometry::BezierCurveQ::RotateAgainstResult'],['../structbezier__geometry_1_1_shape_1_1_rotate_against_result.html',1,'bezier_geometry::Shape::RotateAgainstResult']]],
-  ['rotateslope_11',['rotateSlope',['../group___geometry_util.html#ga7900ad74bf75a874951b0a89aff66d84',1,'bezier_geometry']]]
+  ['rotateslope_11',['rotateSlope',['../group___geometry_util.html#ga7900ad74bf75a874951b0a89aff66d84',1,'bezier_geometry']]],
+  ['rotating_12',['Rotating',['../index.html#autotoc_md5',1,'']]]
 ];

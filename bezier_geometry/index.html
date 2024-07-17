@@ -87,7 +87,8 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">bezier_geometry </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a>Intersection and collision detection for shapes consisting of quadratic Bézier curves. </p>
+<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a>Intersection and collision detection for shapes consisting of quadratic Bézier curves.</p>
+<p><a href="https://andrewquinney.github.io/bezier_geometry/">Code Documentation</a> </p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Requirements</h1>
 <p>Initial generation of makefiles can be done by opening the project in <a href="https://netbeans.apache.org/front/main/index.html">NetBeans</a> after installing the CPPLite plugin:</p>
@@ -96,7 +97,111 @@ Requirements</h1>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Contributing</h1>
 <p>The code format uses the LLVM clang-format style: </p><pre class="fragment">clang-format --style=LLVM -i $(find . -type f -name "*.cpp" -o -name "*.hpp")
-</pre> </div></div><!-- PageDoc -->
+</pre> <h1><a class="anchor" id="autotoc_md3"></a>
+Basic Usage</h1>
+<p>This module provides several useful functions (see the code documentation), but the most interesting is 2D collision detection. A 2-dimensional shape, modelled as a spline of quadratic Bézier curves, can calculate the results of 2 fundamental types of movement: shifts and rotations. A shift is when a shape is to be moved in a straight line for any direction; a rotate is when a shape is rotated about a point in any direction (clockwise/counterclockwise). When simulating physical objects, generally it is important to perform 'collision detection', determining that a moving shape has contacted another moving shape and the details of such contact. Unlike many other collision detection methodologies, this module does not rely on checking for overlaps after moving (potentially causing inconsistent results, depending on granularity/framerate), the use of bounding boxes/octagons, or approximating curves as a set of line segments. Instead, it can symbolically evaluate curves to deterministically calculate distances and initial points of contact with predictable performance and accuracy.</p>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Shifting</h2>
+<p>A simple example of constructing shapes and performing a 'shift' calculation is as follows: </p><pre class="fragment">// The green shape.
+const bezier_geometry::Shape moving(
+  {
+    bezier_geometry::Point2D(100, 100),
+    bezier_geometry::Point2D(100, 200),
+    bezier_geometry::Point2D(200, 200),
+    bezier_geometry::Point2D(200, 100)
+  },
+  {
+    bezier_geometry::Point2D(100, 150),
+    bezier_geometry::Point2D(150, 200),
+    bezier_geometry::Point2D(100, 150),
+    bezier_geometry::Point2D(150, 100)
+  });
+// The red shape.
+const bezier_geometry::Shape stationary(
+  {
+    bezier_geometry::Point2D(400, 100),
+    bezier_geometry::Point2D(400, 150)
+  },
+  {
+    bezier_geometry::Point2D(400, 125),
+    bezier_geometry::Point2D(300, 100)
+  });
+bezier_geometry::Shape::ShiftAgainstResult result;
+moving.shiftAgainst(
+  stationary,
+  -0.1, // Mostly horizontal, sloping downwards slightly.
+  true,
+  true,
+  result);
+// How far the moving shape could move along the input direction before being 'blocked'.
+std::cout &lt;&lt; "Distance to block: " &lt;&lt; result.movingEdgeResult.distance &lt;&lt; std::endl;
+std::cout &lt;&lt; "Moving edge param: " &lt;&lt; result.movingEdgeResult.param &lt;&lt; std::endl;
+// Blue dot. The point on the moving shape where it will be blocked by the stationary shape.
+std::cout &lt;&lt; "Moving blocked point: " &lt;&lt; result.movingEdge-&gt;valueAt(result.movingEdgeResult.param) &lt;&lt; std::endl;
+std::cout &lt;&lt; "Stationary edge param: " &lt;&lt; result.movingEdgeResult.inputParam &lt;&lt; std::endl;
+// Black dot. The point on the stationary shape where it will block the stationary shape.
+std::cout &lt;&lt; "Stationary blocked point: " &lt;&lt; result.stationaryEdge-&gt;valueAt(result.movingEdgeResult.inputParam) &lt;&lt; std::endl;
+</pre><p> The output of the above code snippet: </p><pre class="fragment">Distance to block: 192.503
+Moving edge param: 0.725178
+Moving blocked point: (160.14098358878544559047, 127.48224746029765697131)
+Stationary edge param: 0.591896
+Stationary blocked point: (351.68897042756253767948, 108.32744877641994207806)
+</pre><p> In the below diagram, the two shapes are illustrated as well as their respective blocked/blocking points. An outline of the result of shifting the moving in the direction by the distance calculated is also included to indicate that this is indeed the correct blocking point.</p>
+<div class="image">
+<img src="shift_example.png" alt=""/>
+<div class="caption">
+Shift Visualization</div></div>
+    <h2><a class="anchor" id="autotoc_md5"></a>
+Rotating</h2>
+<p>A simple example of constructing shapes and performing a 'shift' calculation is as follows: </p><pre class="fragment">// The green shape.
+const bezier_geometry::Shape moving(
+  {
+    bezier_geometry::Point2D(100, 100),
+    bezier_geometry::Point2D(100, 200),
+    bezier_geometry::Point2D(200, 200),
+    bezier_geometry::Point2D(200, 100)
+  },
+  {
+    bezier_geometry::Point2D(100, 150),
+    bezier_geometry::Point2D(150, 200),
+    bezier_geometry::Point2D(100, 150),
+    bezier_geometry::Point2D(150, 100)
+  });
+// The red shape.
+const bezier_geometry::Shape stationary(
+  {
+    bezier_geometry::Point2D(300, 100),
+    bezier_geometry::Point2D(400, 100)
+  },
+  {
+    bezier_geometry::Point2D(350, 100),
+    bezier_geometry::Point2D(300, 150)
+  });
+bezier_geometry::Shape::RotateAgainstResult result;
+moving.rotateAgainst(
+  stationary, 
+  bezier_geometry::Point2D(250, 50), // Cyan dot.
+  true, // Clockwise.
+  result);
+// The angle that the moving shape could rotate about the fulcrum before being 'blocked'.
+std::cout &lt;&lt; "Angle to block: " &lt;&lt; result.movingEdgeResult.angle &lt;&lt; std::endl;
+std::cout &lt;&lt; "Moving edge param: " &lt;&lt; result.movingEdgeResult.param &lt;&lt; std::endl;
+// Blue dot. The point on the moving shape where it will be blocked by the stationary shape.
+std::cout &lt;&lt; "Moving blocked point: " &lt;&lt; result.movingEdge-&gt;valueAt(result.movingEdgeResult.param) &lt;&lt; std::endl;
+std::cout &lt;&lt; "Stationary edge param: " &lt;&lt; result.movingEdgeResult.inputParam &lt;&lt; std::endl;
+// Black dot. The point on the stationary shape where it will block the stationary shape.
+std::cout &lt;&lt; "Stationary blocked point: " &lt;&lt; result.stationaryEdge-&gt;valueAt(result.movingEdgeResult.inputParam) &lt;&lt; std::endl;
+</pre><p> The output of the above code snippet: </p><pre class="fragment">Angle to block: 87.1146
+Moving edge param: 0.940507
+Moving blocked point: (188.80936214518857241274, 105.94925531549519348573)
+Stationary edge param: 0.832725
+Stationary blocked point: (302.79810817128520739061, 113.92943848471071532913)
+</pre><p> In the below diagram, the two shapes are illustrated as well as their respective blocked/blocking points. An outline of the result of rotating the moving shape by the angle calculated is also included to indicate that this is indeed the correct blocking point.</p>
+<div class="image">
+<img src="rotate_example.png" alt=""/>
+<div class="caption">
+Rotate Visualization</div></div>
+     </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"/>
 </div><!-- contents -->
 <!-- start footer part -->
